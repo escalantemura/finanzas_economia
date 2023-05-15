@@ -13,25 +13,25 @@ class WACC:
         Con acciones comunes y preferentes:
             WACC = ((E/V) * K_e) + ((P/V) * K_p) + ((D/V) * K_d) * (1-T)
     """
-    acciones_comun_precio: int | float
+    acciones_comun_precio: float
     acciones_comun_cantidad: int
     prima_mercado: float
     tasa_impuestos: float
     tasa_libre_riesgo: float
     beta: float
-    acciones_preferente_precio: int | float = None
+    acciones_preferente_precio: float = None
     acciones_preferente_cantidad: int = None
-    acciones_dividendo: int | float | None = None
+    acciones_dividendo: float | None = None
     bonos_cantidad: List[int] | None = None
-    bonos_precio_nominal: List[int | float] | None = None
-    bonos_precio_mercado: List[int | float] | None = None
+    bonos_precio_nominal: List[float] | None = None
+    bonos_precio_mercado: List[float] | None = None
     bonos_rentabilidad_vencimiento: List[float] | None = None
     bonos_tir: float | None = None
-    bonos_total_nominal_override: List[int | float] | None = None
-    bonos_total_mercado_override: List[int | float] | None = None
-    total_mercado_deuda_override: int | float | None = None
+    bonos_total_nominal_override: List[float] | None = None
+    bonos_total_mercado_override: List[float] | None = None
+    total_mercado_deuda_override: float | None = None
 
-    def total_bonos_nominal(self) -> int | float | List[int | float]:
+    def total_bonos_nominal(self) -> float | List[float]:
         if self.bonos_total_nominal_override is None:
             valores = []
             for cantidad, precio in zip(self.bonos_cantidad, self.bonos_precio_nominal):
@@ -40,7 +40,7 @@ class WACC:
         else:
             return sum(self.bonos_total_nominal_override)
 
-    def total_bonos_mercado(self) -> int | float | List[int | float]:
+    def total_bonos_mercado(self) -> float | List[float]:
         if self.bonos_total_mercado_override is None:
             valores = []
             for cantidad, precio in zip(self.bonos_cantidad, self.bonos_precio_mercado):
@@ -150,13 +150,14 @@ class Bono:
         Calcula el valor de un Bono de acuerdo a lo que se necesite
     """
     tasa_cupon: float
-    valor_nominal: int | float
+    valor_nominal: float
     periodos: int
-    valor_mercado: int | float | None = None
+    valor_mercado: float | None = None
 
     def tir(self) -> float:
         """
             Devuelve la Tasa Interna de Retorno de un Bono
+            Se supone que el precio del bono en el mercado es el valor inicial.
             El monto del año 0, o de adquisición, es igual al valor por el cual se ha adquirido el bono.
             La secuencia es primero el valor negativo del mercado, el flujo de intereses
             y en el último periodo el valor nominal más la tasa cupón
@@ -324,3 +325,41 @@ class FlujoCajaLibre:
         print(f'Periodo Pronosticado ({len(fcl)-1} años) ({vna/vna_valor_residual * 100:.2f}%): {vna:,}')
         print(f'Perpetuidad (>{len(fcl)-1} años) ({vna_perpetuidad/vna_valor_residual * 100:.2f}%): {vna_perpetuidad:,}')
         print(f'Total: {vna_valor_residual:,}')
+
+
+@dataclass
+class Roi:
+    inversion_bruta: float
+    amortizacion: float
+    flujo_caja: float
+    vcpi: float
+
+    def tin(self) -> float:
+        """
+            Tasa Inversión Neta = (inversión bruta-amortizacion) /flujo de caja
+        """
+        return (self.inversion_bruta - self.amortizacion) / self.flujo_caja
+
+    def inversion_neta(self) -> float:
+        """
+            inversión neta = inversión bruta - amortizaciones
+        """
+        return self.inversion_bruta - self.amortizacion
+
+    def baidt(self) -> float:
+        """
+            BAIDT = Inversión neta/TIN
+        """
+        return self. inversion_neta() / self.tin()
+
+    def valor_roi(self) -> float:
+        """
+            ROI = BAIDT / Valor contable del capital invertido
+        """
+        return self.baidt() / self.vcpi
+
+    def presentacion(self):
+        print(f'TIN: {self.tin()} ')
+        print(f'Inversión neta: {self.inversion_neta()}')
+        print(f'BAIDT: {self.baidt()} ')
+        print(f'ROI: {self.valor_roi()} ')
