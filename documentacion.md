@@ -364,7 +364,6 @@ vcpi: float
 
 
 ### Casos
-
 #### Sin override
 
 ```python
