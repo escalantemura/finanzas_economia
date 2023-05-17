@@ -50,11 +50,11 @@ Dias de inventario = ABS((Inventarios * 365)/Costo de ventas)
 
 Razon acida = (Activo corriente - Inventarios)/Pasivo corriente
 
+Razón súper ácida = (Activo corriente - Inventarios - Cuentas por cobrar comerciales) / Pasivo corriente
+
 Razon corriente = Activo corriente / Pasivo corriente
 
-Razon de conversion = AL-Días de cobro / AL-Días de inventario
-
-Razón súper ácida = (Activo corriente - Inventarios - Cuentas por cobrar comerciales) / Pasivo corriente
+Razon de conversion = Días de cobro / Días de inventario
 
 # Análisis de solvencia y riesgo
 Pasivo no corriente sobre activo = Pasivo no corriente / Activo

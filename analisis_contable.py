@@ -1,8 +1,9 @@
 import json
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List, Dict
 import pandas as pd
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
 class Json(BaseModel):
@@ -30,6 +31,14 @@ class Json(BaseModel):
     utilidad_operativa: List[float]
     utilidad_antes_de_impuestos: List[float]
     utilidad_neta: List[float]
+
+    @validator('periodo', each_item=True)
+    def format_timestamp(cls, periodo):
+        """
+            Convierte para 'periodo' el Timestamp Epoch en milisegundos -> DD-MM-YYYY
+            Excel transforma automáticamente una fecha hacia Epoch, por lo que hay convertirlas de nuevo
+        """
+        return datetime.fromtimestamp(periodo / 1000).strftime("%d-%m-%Y")
 
 
 @dataclass
@@ -75,6 +84,20 @@ class AnalisisLiquidez(Analisis):
             for activo_corriente, inventarios, cuentas_por_cobrar, pasivo_corriente in
             zip(self.js.activo_corriente, self.js.inventarios,
                 self.js.cuentas_por_cobrar_comerciales_y_otras, self.js.pasivo_corriente)
+        ]
+
+    def razon_corriente(self):
+        return [
+            activo_corriente / pasivo_corriente
+            for activo_corriente, pasivo_corriente in
+            zip(self.js.activo_corriente, self.js.pasivo_corriente)
+        ]
+
+    def razon_de_conversion(self):
+        return [
+            dias_cobro / dias_inventario
+            for dias_cobro, dias_inventario in
+            zip(self.dias_cobro(), self.dias_inventario())
         ]
 
 
@@ -149,7 +172,7 @@ class RendimientoOperativo(Analisis):
             zip(self.js.ventas, self.js.costo_de_ventas)
         ]
 
-    def margen_de_utilidad(self):
+    def margen_de_utilidad_neta(self):
         return [
             utilidad_neta / ventas
             for utilidad_neta, ventas in
@@ -246,7 +269,7 @@ def cumulative_mean(numbers: List):
 
 
 @dataclass
-class AnalisisRotacion(Analisis):
+class ExplotacionActivos(Analisis):
     """
         Child Class de Analisis.
         Para analizar la rotación según el promedio (se considera un cum mean)
@@ -276,7 +299,7 @@ class AnalisisRotacion(Analisis):
             zip(self.js.ventas, promedio_lista)
         ]
 
-    def rotacion_de_activo_total(self):
+    def rotacion_de_activo_promedio(self):
         promedio_lista = cumulative_mean(self.js.activo_total)
         return [
             ventas / promedio
@@ -298,9 +321,9 @@ class GenerarResultados:
         self.AnalisisSolvenciaRiesgo = AnalisisSolvenciaRiesgo(js=self.data)
         self.RendimientoOperativo = RendimientoOperativo(js=self.data)
         self.AnalisisDupont = AnalisisDupont(js=self.data)
-        self.AnalisisRotacion = AnalisisRotacion(js=self.data)
+        self.ExplotacionActivos = ExplotacionActivos(js=self.data)
         self.clases = [AnalisisLiquidez, AnalisisSolvenciaRiesgo,
-                       RendimientoOperativo, AnalisisDupont, AnalisisRotacion]
+                       RendimientoOperativo, AnalisisDupont, ExplotacionActivos]
 
     @staticmethod
     def excel_reader(archivo: str) -> Dict[str, List[float]]:
@@ -339,7 +362,7 @@ class GenerarResultados:
             Evalúa los métodos de una lista de clases y los combina en un solo Dict
         """
         # Se empieza por agregar los valores de Excel
-        diccionario = self.excel.copy()
+        diccionario = dict(self.data.copy())
         # Luego los valores calculados
         for clase in self.clases:
             diccionario.update(self.get_resultados(clase=clase))
