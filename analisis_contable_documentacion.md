@@ -97,10 +97,6 @@ Margen de utilidad neta = Utilidad neta / Ventas
 Margen operativo = Utilidad operativa / Ventas
 
 # Uso de activos
-Promedio de Cuentas por cobrar comerciales y otras cuentas por cobrar = CALCULATE(
-    AVERAGE('Datos'[Unidad monetaria]),
-    'Datos'[Cuenta]= "Cuentas por Cobrar Comerciales y Otras Cuentas por Cobrar")
-
 Rotación de inventarios = ABS(Costo de ventas / Promedio de Inventarios)
 
 Rotación de las cuentas por cobrar = Ventas / Promedio de Cuentas por cobrar comerciales y otras cuentas por cobrar
