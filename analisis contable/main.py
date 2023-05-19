@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Dict
 import pandas as pd
 from pydantic import BaseModel, validator
+from tkinter.filedialog import askopenfilename
 
 
 class Json(BaseModel):
@@ -371,9 +372,9 @@ class GenerarResultados:
     def csv(self):
         resultados = self.resultados_final()
         df = pd.DataFrame(resultados)
-        df.to_csv('analisis_contable_calculado.csv', index=False)
+        df.to_csv('calculado.csv', index=False)
 
 
 if __name__ == "__main__":
-    file = 'analisis_contable_modelo.xlsx'
+    file = askopenfilename()
     GenerarResultados().csv()
