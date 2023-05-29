@@ -32,6 +32,8 @@ class Json(BaseModel):
     utilidad_operativa: List[float]
     utilidad_antes_de_impuestos: List[float]
     utilidad_neta: List[float]
+    # Otras
+    wacc: List[float] | None = None
 
     @validator('periodo', each_item=True)
     def format_timestamp(cls, periodo):

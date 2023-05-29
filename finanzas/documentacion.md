@@ -239,7 +239,7 @@ for tasa in tasas:
     flujo.tasa_descuento = tasa
     print(f'Tasa de descuento: {flujo.tasa_descuento * 100:.2f}')
     print(f'VNA: {flujo.vna():,}')
-    print(f'VNA con perpetuidad: {flujo.vna_perpetuidad():,}')
+    print(f'VNA con perpetuidad: {flujo.vna_valor_residual():,}')
     print()
 ```
 

@@ -69,6 +69,15 @@ Periodo de intereses ganados = Utilidad operativa / Gastos financieros
 
 Razón de flujo de efectivo = (Utilidad neta - Otras provisiones) / Pasivo corriente
 
+# Rendimiento operativo
+Margen antes de impuesto = Utilidad antes de impuesto / Ventas
+
+Margen bruto = (Ventas - Costo de ventas) / Ventas
+
+Margen de utilidad neta = Utilidad neta / Ventas
+
+Margen operativo = Utilidad operativa / Ventas
+
 # Dupont
 
 Apalancamiento financiero = (Utilidad antes de impuesto / Utilidad operativa) * DuPont-Multiplicador del capital
@@ -85,18 +94,10 @@ ROE =  DuPont-Margen neto * DuPont-Rotación de activos * DuPont-Multiplicador d
 
 ROE extendido = DuPont-Efecto fiscal * DuPont-Margen operativo * DuPont-Rotación de activos * DuPont-Apalancamiento financiero
 
-Rotación de activos = Ventas / Activo
-
-# Rendimiento operativo
-Margen antes de impuesto = Utilidad antes de impuesto / Ventas
-
-Margen bruto = (Ventas - Costo de ventas) / Ventas
-
-Margen de utilidad neta = Utilidad neta / Ventas
-
-Margen operativo = Utilidad operativa / Ventas
 
 # Uso de activos
+Rotación de activos = Ventas / Activo
+
 Rotación de inventarios = ABS(Costo de ventas / Promedio de Inventarios)
 
 Rotación de las cuentas por cobrar = Ventas / Promedio de Cuentas por cobrar comerciales y otras cuentas por cobrar

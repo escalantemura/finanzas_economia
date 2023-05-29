@@ -306,8 +306,10 @@ class FlujoCajaLibre:
         """
             VNA de una empresa considerando su valor residual
         """
+        # por metodología e decuenta el valor reidual dentro del valor del último flujo de caja
         add_valor_residual = self.fcl().copy()
-        add_valor_residual.append(self.valor_residual())
+        #add_valor_residual.append(self.valor_residual())
+        add_valor_residual[-1] = add_valor_residual[-1] + self.valor_residual()
         return npf.npv(rate=self.tasa_descuento, values=add_valor_residual)
 
     def presentacion(self):
@@ -324,7 +326,6 @@ class FlujoCajaLibre:
         print(f'{"VNA del FCL":-^70}')
         print(f'Periodo Pronosticado ({len(fcl)-1} años) ({vna/vna_valor_residual * 100:.2f}%): {vna:,}')
         print(f'Perpetuidad (>{len(fcl)-1} años) ({vna_perpetuidad/vna_valor_residual * 100:.2f}%): {vna_perpetuidad:,}')
-        print(f'Total: {vna_valor_residual:,}')
 
 
 @dataclass
