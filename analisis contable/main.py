@@ -32,14 +32,14 @@ class Json(BaseModel):
     utilidad_operativa: List[float]
     utilidad_antes_de_impuestos: List[float]
     utilidad_neta: List[float]
-    # Otras
-    wacc: List[float] | None = None
 
     @validator('periodo', each_item=True)
     def format_timestamp(cls, periodo):
         """
-            Convierte para 'periodo' el Timestamp Epoch en milisegundos -> DD-MM-YYYY
-            Excel transforma automáticamente una fecha hacia Epoch, por lo que hay convertirlas de nuevo
+            Convierte para 'periodo' el Timestamp Epoch
+            en milisegundos -> DD-MM-YYYY
+            Excel transforma automáticamente una fecha hacia Epoch,
+            por lo que hay convertirlas de nuevo
         """
         return datetime.fromtimestamp(periodo / 1000).strftime("%d-%m-%Y")
 
@@ -62,31 +62,53 @@ class AnalisisLiquidez(Analisis):
 
     def dias_cobro(self):
         return [
-            (cuentas_por_cobrar * 365) / ventas
+            (cuentas_por_cobrar * 365)
+            / ventas
             for cuentas_por_cobrar, ventas in
-            zip(self.js.cuentas_por_cobrar_comerciales_y_otras, self.js.ventas)
+            zip(
+                self.js.cuentas_por_cobrar_comerciales_y_otras,
+                self.js.ventas
+                )
         ]
 
     def dias_inventario(self):
         return [
-            abs((inventarios * 365) / costo_de_ventas)
+            abs((inventarios * 365)
+                / costo_de_ventas)
             for inventarios, costo_de_ventas in
-            zip(self.js.inventarios, self.js.costo_de_ventas)
+            zip(
+                self.js.inventarios,
+                self.js.costo_de_ventas
+                )
         ]
 
     def razon_acida(self):
         return [
             (activo_corriente - inventarios) / pasivo_corriente
             for activo_corriente, inventarios, pasivo_corriente in
-            zip(self.js.activo_corriente, self.js.inventarios, self.js.pasivo_corriente)
+            zip(
+                self.js.activo_corriente,
+                self.js.inventarios,
+                self.js.pasivo_corriente
+                )
         ]
 
     def razon_super_acida(self):
         return [
-            (activo_corriente - inventarios - cuentas_por_cobrar) / pasivo_corriente
-            for activo_corriente, inventarios, cuentas_por_cobrar, pasivo_corriente in
-            zip(self.js.activo_corriente, self.js.inventarios,
-                self.js.cuentas_por_cobrar_comerciales_y_otras, self.js.pasivo_corriente)
+            (activo_corriente -
+             inventarios -
+             cuentas_por_cobrar)
+            / pasivo_corriente
+            for activo_corriente,
+            inventarios,
+            cuentas_por_cobrar,
+            pasivo_corriente in
+            zip(
+                self.js.activo_corriente,
+                self.js.inventarios,
+                self.js.cuentas_por_cobrar_comerciales_y_otras,
+                self.js.pasivo_corriente
+                )
         ]
 
     def razon_corriente(self):
@@ -150,7 +172,11 @@ class AnalisisSolvenciaRiesgo(Analisis):
         return [
             (utilidad_neta - otras_provisiones) / pasivo_corriente
             for utilidad_neta, otras_provisiones, pasivo_corriente in
-            zip(self.js.utilidad_neta, self.js.otras_provisiones, self.js.pasivo_corriente)
+            zip(
+                self.js.utilidad_neta,
+                self.js.otras_provisiones,
+                self.js.pasivo_corriente
+                )
         ]
 
 
@@ -199,10 +225,16 @@ class AnalisisDupont(Analisis):
 
     def apalancamiento_financiero(self):
         return [
-            (utilidad_antes_de_impuestos / utilidad_operativa) * multiplicador_del_capital
-            for utilidad_antes_de_impuestos, utilidad_operativa, multiplicador_del_capital in
-            zip(self.js.utilidad_antes_de_impuestos, self.js.utilidad_operativa,
-                self.multiplicador_del_capital())
+            (utilidad_antes_de_impuestos / utilidad_operativa) *
+            multiplicador_del_capital
+            for utilidad_antes_de_impuestos,
+            utilidad_operativa,
+            multiplicador_del_capital in
+            zip(
+                self.js.utilidad_antes_de_impuestos,
+                self.js.utilidad_operativa,
+                self.multiplicador_del_capital()
+                )
         ]
 
     def efecto_fiscal(self):
@@ -244,15 +276,29 @@ class AnalisisDupont(Analisis):
         return [
             margen_neto * rotacion_de_activos * multiplicador_del_capital
             for margen_neto, rotacion_de_activos, multiplicador_del_capital in
-            zip(self.margen_neto(), self.rotacion_de_activos(), self.multiplicador_del_capital())
+            zip(
+                self.margen_neto(),
+                self.rotacion_de_activos(),
+                self.multiplicador_del_capital()
+                )
         ]
 
     def roe_extendido(self):
         return [
-            efecto_fiscal * margen_operativo * rotacion_de_activos * apalancamiento_financiero
-            for efecto_fiscal, margen_operativo, rotacion_de_activos, apalancamiento_financiero in
-            zip(self.efecto_fiscal(), self.margen_operativo(),
-                self.rotacion_de_activos(), self.apalancamiento_financiero())
+            efecto_fiscal *
+            margen_operativo *
+            rotacion_de_activos *
+            apalancamiento_financiero
+            for efecto_fiscal,
+            margen_operativo,
+            rotacion_de_activos,
+            apalancamiento_financiero in
+            zip(
+                self.efecto_fiscal(),
+                self.margen_operativo(),
+                self.rotacion_de_activos(),
+                self.apalancamiento_financiero()
+                )
         ]
 
 
@@ -287,7 +333,9 @@ class ExplotacionActivos(Analisis):
         ]
 
     def rotacion_de_cuentas_por_cobrar_comerciales_y_otras(self):
-        promedio_lista = cumulative_mean(self.js.cuentas_por_cobrar_comerciales_y_otras)
+        promedio_lista = cumulative_mean(
+            self.js.cuentas_por_cobrar_comerciales_y_otras
+            )
         return [
             ventas / promedio
             for ventas, promedio in
@@ -325,8 +373,13 @@ class GenerarResultados:
         self.RendimientoOperativo = RendimientoOperativo(js=self.data)
         self.AnalisisDupont = AnalisisDupont(js=self.data)
         self.ExplotacionActivos = ExplotacionActivos(js=self.data)
-        self.clases = [AnalisisLiquidez, AnalisisSolvenciaRiesgo,
-                       RendimientoOperativo, AnalisisDupont, ExplotacionActivos]
+        self.clases = [
+            AnalisisLiquidez,
+            AnalisisSolvenciaRiesgo,
+            RendimientoOperativo,
+            AnalisisDupont,
+            ExplotacionActivos
+            ]
 
     @staticmethod
     def excel_reader(archivo: str) -> Dict[str, List[float]]:
@@ -355,14 +408,16 @@ class GenerarResultados:
         diccionario = {}
         for metodo in self.get_metodos(clase):
             diccionario.update({
-                eval(f'self.{clase.__name__}.{metodo}.__name__'): eval(f'self.{clase.__name__}.{metodo}()')
+                eval(f'self.{clase.__name__}.{metodo}.__name__'):
+                    eval(f'self.{clase.__name__}.{metodo}()')
             })
 
         return diccionario
 
     def resultados_final(self) -> Dict[str, List[float]]:
         """
-            Evalúa los métodos de una lista de clases y los combina en un solo Dict
+            Evalúa los métodos de una lista de clases y los
+            combina en un solo Dict
         """
         # Se empieza por agregar los valores de Excel
         diccionario = dict(self.data.copy())
