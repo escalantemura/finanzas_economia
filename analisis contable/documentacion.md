@@ -2,13 +2,9 @@
 
 ## Balance general
 
-### Fórmula
-
 $$
 \text{{Balance general}} = \text{{Activo}} ∪ \text{{Pasivo}} ∪ \text{{Patrimonio}}
 $$
-
-### Activo
 
 $$
 \text{{Activo}} = \text{{Activo corriente}} + \text{{Activo no corriente}}
@@ -21,13 +17,11 @@ Efectivo y equivalentes
 Inventarios
 Otras provisiones
 
-### Pasivo
 
 $$
 \text{{Pasivo}} = \text{{Pasivo corriente}} + \text{{Pasivo no corriente}}
 $$
 
-### Patrimonio neto
 
 $$
 \text{{Patrimonio neto}} = \text{{Capital contable}} − \text{{Perdidas acumuladas}}

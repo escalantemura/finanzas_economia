@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional, Union
 import numpy_financial as npf
 import matplotlib.pyplot as plt
 
@@ -19,31 +19,37 @@ class WACC:
     tasa_impuestos: float
     tasa_libre_riesgo: float
     beta: float
-    acciones_preferente_precio: float = None
-    acciones_preferente_cantidad: int = None
-    acciones_dividendo: float | None = None
-    bonos_cantidad: List[int] | None = None
-    bonos_precio_nominal: List[float] | None = None
-    bonos_precio_mercado: List[float] | None = None
-    bonos_rentabilidad_vencimiento: List[float] | None = None
-    bonos_tir: float | None = None
-    bonos_total_nominal_override: List[float] | None = None
-    bonos_total_mercado_override: List[float] | None = None
-    total_mercado_deuda_override: float | None = None
+    acciones_preferente_precio: Optional[float] = None
+    acciones_preferente_cantidad: Optional[int] = None
+    acciones_dividendo: Optional[float] = None
+    bonos_cantidad: Optional[List[int]] = None
+    bonos_precio_nominal: Optional[List[float]] = None
+    bonos_precio_mercado: Optional[List[float]] = None
+    bonos_rentabilidad_vencimiento: Optional[List[float]] = None
+    bonos_tir: Optional[float] = None
+    bonos_total_nominal_override: Optional[List[float]] = None
+    bonos_total_mercado_override: Optional[List[float]] = None
+    total_mercado_deuda_override: Optional[float] = None
 
-    def total_bonos_nominal(self) -> float | List[float]:
+    def total_bonos_nominal(self) -> Union[float, List[float]]:
         if self.bonos_total_nominal_override is None:
             valores = []
-            for cantidad, precio in zip(self.bonos_cantidad, self.bonos_precio_nominal):
+            for cantidad, precio in zip(
+                self.bonos_cantidad,
+                self.bonos_precio_nominal
+            ):
                 valores.append(cantidad * precio)
             return sum(valores)
         else:
             return sum(self.bonos_total_nominal_override)
 
-    def total_bonos_mercado(self) -> float | List[float]:
+    def total_bonos_mercado(self) -> Union[float, List[float]]:
         if self.bonos_total_mercado_override is None:
             valores = []
-            for cantidad, precio in zip(self.bonos_cantidad, self.bonos_precio_mercado):
+            for cantidad, precio in zip(
+                self.bonos_cantidad,
+                self.bonos_precio_mercado
+            ):
                 valores.append(cantidad * precio)
             return sum(valores)
         else:
@@ -56,7 +62,10 @@ class WACC:
     def total_mercado_accion_preferente(self) -> float:
         """ Valor P. Valor de mercado total de las acciones preferentes"""
         if self.acciones_preferente_precio is not None:
-            return self.acciones_preferente_precio * self.acciones_preferente_cantidad
+            return (
+                self.acciones_preferente_precio
+                * self.acciones_preferente_cantidad
+            )
         else:
             return 0
 
@@ -78,7 +87,11 @@ class WACC:
             Valor V
             Valor de la empresa en el mercado
         """
-        return self.total_mercado_accion_comun() + self.total_mercado_accion_preferente() + self.total_mercado_deuda()
+        return (
+            self.total_mercado_accion_comun()
+            + self.total_mercado_accion_preferente()
+            + self.total_mercado_deuda()
+        )
 
     def costo_patrimonio(self) -> float:
         """
@@ -91,13 +104,17 @@ class WACC:
         """
             Valor K_d
             Costo de la deuda
-            Se puede calcular mediante dos formas: 1) La cartera de bonos y su rentabilidad al vencimiento
-            o 2) el TIR de un bono de referencia
+            Se puede calcular mediante dos formas: 1) La cartera de bonos y
+            su rentabilidad al vencimiento o 2) el TIR de un bono de referencia
         """
         if self.bonos_rentabilidad_vencimiento is not None:
             valores = []
-            for mercado, rentabilidad in zip(self.bonos_total_mercado_override, self.bonos_rentabilidad_vencimiento):
-                valores.append(mercado * rentabilidad / self.total_mercado_deuda())
+            for mercado, rentabilidad in zip(
+                self.bonos_total_mercado_override,
+                self.bonos_rentabilidad_vencimiento
+            ):
+                valores.append(mercado * rentabilidad
+                               / self.total_mercado_deuda())
             return sum(valores)
         else:
             return self.bonos_tir
@@ -116,10 +133,17 @@ class WACC:
         return 1 - self.tasa_impuestos
 
     def resultado(self) -> float:
-        return ((self.total_mercado_accion_comun() / self.total_mercado_empresa()) * self.costo_patrimonio()) \
-            + ((self.total_mercado_accion_preferente() / self.total_mercado_empresa()) * self.costo_acciones_preferentes()) \
-            + ((self.total_mercado_deuda() / self.total_mercado_empresa()) * self.costo_deuda()) \
-            * self.escudo_fiscal()
+        return (
+            (self.total_mercado_accion_comun()
+             / self.total_mercado_empresa())
+            * self.costo_patrimonio()
+            + (self.total_mercado_accion_preferente()
+               / self.total_mercado_empresa())
+            * self.costo_acciones_preferentes()
+            + (self.total_mercado_deuda()
+               / self.total_mercado_empresa())
+            * self.costo_deuda()
+        ) * self.escudo_fiscal()
 
     def estructura_financiera(self):
         accion_comun = self.total_mercado_accion_comun()
@@ -128,18 +152,34 @@ class WACC:
         empresa = self.total_mercado_empresa()
 
         print(f'{"Estructura financiera":-^70}')
-        print(f'Valor de mercado de las acciones comunes (E) ({accion_comun / empresa * 100:.2f}%): {accion_comun:,}')
+        print(
+            f'Valor de mercado de las acciones comunes (E) '
+            f'({accion_comun / empresa * 100:.2f}%): '
+            f'{accion_comun:,}'
+        )
         if self.total_mercado_accion_preferente() != 0:
-            print(f'Valor de mercado de las acciones preferentes (P) ({accion_preferente / empresa * 100:.2f}%): {accion_preferente:,}')
-        print(f'Valor de la deuda total (D) ({deuda / empresa * 100:.2f}%): {deuda:,}')
+            print(
+                f'Valor de mercado de las acciones preferentes (P) '
+                f'({accion_preferente / empresa * 100:.2f}%): '
+                f'{accion_preferente:,}'
+            )
+        print(
+            f'Valor de la deuda total (D) ({deuda / empresa * 100:.2f}%): '
+            f'{deuda:,}'
+        )
         print(f'Valor de mercado de la empresa (V): {empresa:,}')
 
     def presentacion(self):
         print(f'{"Resultados":-^70}')
-        print(f'Costo del patrimonio (K_e): {self.costo_patrimonio() * 100:.2f}%')
+        print(
+            f'Costo del patrimonio (K_e): {self.costo_patrimonio() * 100:.2f}%'
+            )
         print(f'Costo de la deuda (K_d): {self.costo_deuda() * 100:.2f}%')
         if self.total_mercado_accion_preferente() != 0:
-            print(f'Costo de las acciones preferentes (K_p): {self.costo_acciones_preferentes() * 100:.2f}%')
+            print(
+                f'Costo de las acciones preferentes (K_p): '
+                f'{self.costo_acciones_preferentes() * 100:.2f}%'
+            )
         print(f'Escudo fiscal: {self.escudo_fiscal() * 100:.2f}%')
         print(f'Valor WACC: {self.resultado() * 100:.2f}%')
 
@@ -152,15 +192,16 @@ class Bono:
     tasa_cupon: float
     valor_nominal: float
     periodos: int
-    valor_mercado: float | None = None
+    valor_mercado: Optional[float] = None
 
     def tir(self) -> float:
         """
             Devuelve la Tasa Interna de Retorno de un Bono
             Se supone que el precio del bono en el mercado es el valor inicial.
-            El monto del año 0, o de adquisición, es igual al valor por el cual se ha adquirido el bono.
-            La secuencia es primero el valor negativo del mercado, el flujo de intereses
-            y en el último periodo el valor nominal más la tasa cupón
+            El monto del año 0, o de adquisición, es igual al valor por el cual
+            se ha adquirido el bono. La secuencia es primero el valor negativo
+            del mercado, el flujo de intereses y en el último periodo
+            el valor nominal más la tasa cupón
         """
         flujo = [-self.valor_mercado]
         for _ in range(self.periodos - 1):
@@ -178,13 +219,17 @@ class AccionComun:
     tasa_descuento: float
     tasa_crecimiento: float
     periodo: int = 1
-    tasa_crecimiento_lista: List[float] | None = None
+    tasa_crecimiento_lista: Optional[List[float]] = None
 
     def valor(self) -> float:
         """
             Fórmula principal para valorizar la acción
         """
-        formula = self.dividendo_esperado * ((1 + self.tasa_crecimiento) ** self.periodo) / (self.tasa_descuento - self.tasa_crecimiento)
+        formula = (
+            self.dividendo_esperado *
+            (1 + self.tasa_crecimiento) ** self.periodo
+            ) / (self.tasa_descuento - self.tasa_crecimiento)
+
         return formula
 
     def ganancia_capital(self) -> float:
@@ -198,7 +243,10 @@ class AccionComun:
         """
         lista = []
         for tasa in self.tasa_crecimiento_lista:
-            lista.append(self.dividendo_esperado * ((1 + self.tasa_crecimiento) ** self.periodo) / (self.tasa_descuento - tasa))
+            lista.append(
+                self.dividendo_esperado *
+                ((1 + self.tasa_crecimiento) ** self.periodo)
+                / (self.tasa_descuento - tasa))
         return lista
 
     def grafico(self):
@@ -234,7 +282,14 @@ class AccionComun:
 
         # agregar etiquetas de valor a la gráfica
         for i, ingreso in enumerate(ingresos):
-            plt.text(tiempo[i], ingreso, str(ingreso), ha='center', va='bottom', fontsize=16)
+            plt.text(
+                tiempo[i],
+                ingreso,
+                str(ingreso),
+                ha='center',
+                va='bottom',
+                fontsize=16
+                )
         # personalizar la apariencia de la gráfica
         plt.xticks(tiempo)
         plt.yticks(ingresos)
@@ -244,7 +299,7 @@ class AccionComun:
 
     def presentacion(self):
         print(f'Valor de la acción (año {self.periodo-1}): {self.valor():.2f}')
-        print(f'Pronóstico según las tasas de crecimiento: {self.pronostico()}')
+        print(f'Pronóstico según tasas de crecimiento: {self.pronostico()}')
         print(f'Ganancia de capital: {self.ganancia_capital():.2f}')
         self.grafico()
 
@@ -258,19 +313,26 @@ class FlujoCajaLibre:
     impuesto_renta: List[float] = 0
     tasa_crecimiento: float = 0
     tasa_descuento: float = 0
-    fcl_override: List[float] | None = None
+    fcl_override: Optional[List[float]] = None
 
     def ebitda(self) -> List[float]:
         valores = []
-        for utiope, depamor in zip(self.utilidad_operativa, self.depreciacion_amortizacion):
-            valores.append(utiope + depamor)
+        for utilidad, depreciacion in zip(
+            self.utilidad_operativa,
+            self.depreciacion_amortizacion
+        ):
+            valores.append(utilidad + depreciacion)
         return valores
 
     def fcl(self) -> List[float]:
         if self.fcl_override is None:
             valores = []
             for ebitda, capex, cct, renta in zip(
-                self.ebitda(), self.capex, self.cambio_capital_trabajo, self.impuesto_renta):
+                self.ebitda(),
+                self.capex,
+                self.cambio_capital_trabajo,
+                self.impuesto_renta
+            ):
                 valores.append(ebitda - capex - cct - renta)
             return self._fcl_correccion_npv(valores)
         else:
@@ -279,7 +341,8 @@ class FlujoCajaLibre:
     def _fcl_correccion_npv(self, lista_fcl: List[float]) -> List[float]:
         """
             Esta función corrige la fórmula de npv de Numpi
-            Si el primer valor es negativo (una inversión), se debe reemplazar con un cero
+            Si el primer valor es negativo (una inversión),
+            se debe reemplazar con un cero
             Sino insertar un cero al comienzo
         """
         lista_fcl = lista_fcl.copy()
@@ -291,10 +354,14 @@ class FlujoCajaLibre:
 
     def valor_residual(self) -> float:
         """
-            Devuelve el valor a perpetuidad o valor continuo o valor residual del flc
+            Devuelve el valor a perpetuidad o valor continuo o valor residual
+            del flc
             Las tasa de descuento puede ser el WACC también
         """
-        return self.fcl()[-1] * (1 + self.tasa_crecimiento) / (self.tasa_descuento - self.tasa_crecimiento)
+        return (
+            self.fcl()[-1] * (1 + self.tasa_crecimiento)
+            / (self.tasa_descuento - self.tasa_crecimiento)
+        )
 
     def vna(self) -> float:
         """
@@ -306,9 +373,10 @@ class FlujoCajaLibre:
         """
             VNA de una empresa considerando su valor residual
         """
-        # por metodología e decuenta el valor reidual dentro del valor del último flujo de caja
+        # por metodología e decuenta el valor reidual dentro
+        # del valor del último flujo de caja
         add_valor_residual = self.fcl().copy()
-        #add_valor_residual.append(self.valor_residual())
+        # add_valor_residual.append(self.valor_residual())
         add_valor_residual[-1] = add_valor_residual[-1] + self.valor_residual()
         return npf.npv(rate=self.tasa_descuento, values=add_valor_residual)
 
@@ -322,10 +390,20 @@ class FlujoCajaLibre:
         print(f'Flujo de caja libre: {fcl}')
         print(f'Valor residual (perpetuidad): {self.valor_residual():,}')
         print(f'Valor Presente del FCL: {vna:,}')
-        print(f'Valor Presente del FCL (con el valor residual): {vna_valor_residual:,}')
+        print(
+            f'Valor Presente del FCL (con el valor residual): '
+            f'{vna_valor_residual:,}'
+        )
         print(f'{"VNA del FCL":-^70}')
-        print(f'Periodo Pronosticado ({len(fcl)-1} años) ({vna/vna_valor_residual * 100:.2f}%): {vna:,}')
-        print(f'Perpetuidad (>{len(fcl)-1} años) ({vna_perpetuidad/vna_valor_residual * 100:.2f}%): {vna_perpetuidad:,}')
+        print(
+            f'Periodo Pronosticado ({len(fcl)-1} años) '
+            f'({vna/vna_valor_residual * 100:.2f}%): {vna:,}'
+        )
+        print(
+            f'Perpetuidad (>{len(fcl)-1} años) '
+            f'({vna_perpetuidad/vna_valor_residual * 100:.2f}%): '
+            f'{vna_perpetuidad:,}'
+        )
 
 
 @dataclass
