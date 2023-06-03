@@ -361,18 +361,20 @@ class ExplotacionActivos(Analisis):
 
 @dataclass
 class GenerarResultados:
+    file: str
     """
         Evalúa todos los métodos de todas las clases que se pasen como lista
     """
 
     def __post_init__(self):
-        self.excel = self.excel_reader(archivo=file)
+        self.excel = self.excel_reader()
         self.data = Json(**self.excel)
         self.AnalisisLiquidez = AnalisisLiquidez(js=self.data)
         self.AnalisisSolvenciaRiesgo = AnalisisSolvenciaRiesgo(js=self.data)
         self.RendimientoOperativo = RendimientoOperativo(js=self.data)
         self.AnalisisDupont = AnalisisDupont(js=self.data)
         self.ExplotacionActivos = ExplotacionActivos(js=self.data)
+        # Lista de análisis a clasificar
         self.clases = [
             AnalisisLiquidez,
             AnalisisSolvenciaRiesgo,
@@ -381,9 +383,8 @@ class GenerarResultados:
             ExplotacionActivos
             ]
 
-    @staticmethod
-    def excel_reader(archivo: str) -> Dict[str, List[float]]:
-        excel = pd.read_excel(archivo)
+    def excel_reader(self) -> Dict[str, List[float]]:
+        excel = pd.read_excel(self.file)
         result = excel.to_json(orient="columns")
         parsed = json.loads(result)
         # Convierte el dict de cada valor en una lista simple
@@ -396,10 +397,11 @@ class GenerarResultados:
         """
             Crea una lista con todos los métodos de una clase
         """
-        return [method for method in dir(clase)
-                if not method.startswith('__')
-                and callable(getattr(clase, method))
-                ]
+        return [
+            method for method in dir(clase)
+            if not method.startswith('__')
+            and callable(getattr(clase, method))
+        ]
 
     def get_resultados(self, clase: str) -> Dict[str, List[float]]:
         """
@@ -434,4 +436,4 @@ class GenerarResultados:
 
 if __name__ == "__main__":
     file = askopenfilename()
-    GenerarResultados().csv()
+    GenerarResultados(file=file).csv()
