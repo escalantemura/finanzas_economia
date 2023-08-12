@@ -161,3 +161,4 @@ cython_debug/
 
 # Archivos de resultados
 analisis contable/calculado.csv
+borrador.py
